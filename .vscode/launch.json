@@ -1,0 +1,434 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'advent-of-code-2023'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "advent-of-code-2023",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day1'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day1",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day1",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day1'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day1",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day1",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day10'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day10",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day10",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day10'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day10",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day10",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day11'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day11",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day11",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day11'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day11",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day11",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day2'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day2",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day2",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day2'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day2",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day2",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day3'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day3",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day3",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day3'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day3",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day3",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day4'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day4",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day4",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day4'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day4",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day4",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day5'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day5",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day5",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day5'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day5",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day5",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day6'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day6",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day6",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day6'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day6",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day6",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day7'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day7",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day7",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day7'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day7",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day7",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day8'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day8",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day8",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day8'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day8",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day8",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day9'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day9",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day9",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day9'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day9",
+                    "--package=advent-of-code-2023"
+                ],
+                "filter": {
+                    "name": "day9",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
