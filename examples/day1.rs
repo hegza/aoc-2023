@@ -1,38 +1,45 @@
+use std::str::Lines;
+
 const INPUT: &str = include_str!("inputs/day1.txt");
 
 fn main() -> anyhow::Result<()> {
-    let mut lines = INPUT.lines();
+    let p1 = part1(INPUT.lines());
+    let p2 = part2(INPUT.lines());
 
-    let mut sum1 = 0;
-    let mut sum2 = 0;
-    while let Some(line) = lines.next() {
-        let n1 = part1(line);
-        let n2 = part2(line);
-
-        sum1 += n1;
-        sum2 += n2;
-    }
-
-    println!("Part 1: {sum1}");
-    println!("Part 2: {sum2}");
+    println!("Part 1: {p1}");
+    println!("Part 2: {p2}");
 
     Ok(())
 }
 
-fn part1(line: &str) -> i64 {
-    let first = line.chars().find(is_digit).unwrap();
-    let last = line.chars().rev().find(is_digit).unwrap();
+fn part1(mut lines: Lines<'_>) -> i64 {
+    let mut sum = 0;
 
-    let word = String::from(first) + &String::from(last);
-    word.parse::<i64>().unwrap()
+    while let Some(line) = lines.next() {
+        let first = line.chars().find(is_digit).unwrap();
+        let last = line.chars().rev().find(is_digit).unwrap();
+
+        let word = String::from(first) + &String::from(last);
+        let n = word.parse::<i64>().unwrap();
+        sum += n;
+    }
+
+    sum
 }
 
-fn part2(line: &str) -> i64 {
-    let first = search(line, true);
-    let last = search(line, false);
+fn part2(mut lines: Lines<'_>) -> i64 {
+    let mut sum = 0;
 
-    let word = String::from(first) + &String::from(last);
-    word.parse::<i64>().unwrap()
+    while let Some(line) = lines.next() {
+        let first = search(line, true);
+        let last = search(line, false);
+
+        let word = String::from(first) + &String::from(last);
+        let n = word.parse::<i64>().unwrap();
+        sum += n;
+    }
+
+    sum
 }
 
 fn search(line: &str, first: bool) -> char {
@@ -42,7 +49,7 @@ fn search(line: &str, first: bool) -> char {
             return n;
         }
     }
-    // Unreachable with the known input format
+    // Unreachable with the known input
     panic!()
 }
 
