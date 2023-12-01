@@ -1,5 +1,5 @@
 watch EXAMPLE:
-    cargo watch -x 'run --example={{EXAMPLE}} --release'
+    cargo watch -x 'run --example=day{{EXAMPLE}} --release'
 
 run IDX:
     cargo run --example=day{{IDX}}
