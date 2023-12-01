@@ -1,25 +1,54 @@
 const INPUT: &str = include_str!("inputs/day1.txt");
 
+fn main() -> anyhow::Result<()> {
+    let mut lines = INPUT.lines();
+
+    let mut sum1 = 0;
+    let mut sum2 = 0;
+    while let Some(line) = lines.next() {
+        let n1 = part1(line);
+        let n2 = part2(line);
+
+        sum1 += n1;
+        sum2 += n2;
+    }
+
+    println!("Part 1: {sum1}");
+    println!("Part 2: {sum2}");
+
+    Ok(())
+}
+
+fn part1(line: &str) -> i64 {
+    let first = line.chars().find(is_digit).unwrap();
+    let last = line.chars().rev().find(is_digit).unwrap();
+
+    let word = String::from(first) + &String::from(last);
+    word.parse::<i64>().unwrap()
+}
+
+fn part2(line: &str) -> i64 {
+    let first = search(line, true);
+    let last = search(line, false);
+
+    let word = String::from(first) + &String::from(last);
+    word.parse::<i64>().unwrap()
+}
+
 fn search(line: &str, first: bool) -> char {
-    if first {
-        for n in 0..line.len() {
-            if let Some(n) = n_here(&line[n..]) {
-                return n;
-            }
-        }
-    } else {
-        for n in 0..line.len() {
-            if let Some(n) = n_here(&line[line.len() - n - 1..]) {
-                return n;
-            }
+    for n in 0..line.len() {
+        let range = if first { n.. } else { line.len() - n - 1.. };
+        if let Some(n) = n_here(&line[range]) {
+            return n;
         }
     }
+    // Unreachable with the known input format
     panic!()
 }
 
 fn n_here(line: &str) -> Option<char> {
     let fc = line.chars().nth(0).unwrap();
-    if fc.is_digit(10) {
+    if is_digit(&fc) {
         return Some(fc);
     };
     let mut acc = String::new();
@@ -41,20 +70,6 @@ fn n_here(line: &str) -> Option<char> {
     None
 }
 
-fn main() -> anyhow::Result<()> {
-    let mut lines = INPUT.lines();
-    let mut sum = 0;
-    while let Some(line) = lines.next() {
-        println!("{line}");
-        let mut c = line.chars();
-        let first = search(line, true);
-        let last = search(line, false);
-
-        let word = String::from(first) + &String::from(last);
-        let n = word.parse::<i32>().unwrap();
-        sum += n;
-    }
-    println!("{sum}");
-
-    Ok(())
+fn is_digit(c: &char) -> bool {
+    c.is_digit(10)
 }
