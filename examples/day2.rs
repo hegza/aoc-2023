@@ -13,15 +13,17 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn find_num_re(re: &str, haystack: &str) -> anyhow::Result<i64> {
+    match Regex::new(re)?.captures_iter(haystack).next() {
+        Some(x) => Ok(x[1].parse::<i64>()?),
+        None => Ok(0),
+    }
+}
+
 fn part1(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
     let mut sum = 0;
     while let Some(line) = lines.next() {
         let (game_s, rest) = line.split_once(':').unwrap();
-        let game_n = &Regex::new(r"Game (\d+)")?
-            .captures_iter(game_s)
-            .next()
-            .unwrap()[1]
-            .parse::<i64>()?;
 
         let mut rmax = 0;
         let mut bmax = 0;
@@ -29,29 +31,21 @@ fn part1(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
 
         let mut it = rest.split(';');
         while let Some(set) = it.next() {
-            let r = match Regex::new(r"(\d+) red")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let r = find_num_re(r"(\d+) red", set)?;
             if r > rmax {
                 rmax = r;
             }
-            let b = match Regex::new(r"(\d+) blue")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let b = find_num_re(r"(\d+) blue", set)?;
             if b > bmax {
                 bmax = b;
             }
-            let g = match Regex::new(r"(\d+) green")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let g = find_num_re(r"(\d+) green", set)?;
             if g > gmax {
                 gmax = g;
             }
         }
         if rmax <= RED && gmax <= GREEN && bmax <= BLUE {
+            let game_n = find_num_re(r"Game (\d+)", game_s)?;
             sum += game_n;
         }
     }
@@ -70,24 +64,15 @@ fn part2(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
 
         let mut it = rest.split(';');
         while let Some(set) = it.next() {
-            let r = match Regex::new(r"(\d+) red")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let r = find_num_re(r"(\d+) red", set)?;
             if r > rmax {
                 rmax = r;
             }
-            let b = match Regex::new(r"(\d+) blue")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let b = find_num_re(r"(\d+) blue", set)?;
             if b > bmax {
                 bmax = b;
             }
-            let g = match Regex::new(r"(\d+) green")?.captures_iter(set).next() {
-                Some(x) => x[1].parse::<i64>()?,
-                None => 0,
-            };
+            let g = find_num_re(r"(\d+) green", set)?;
             if g > gmax {
                 gmax = g;
             }
