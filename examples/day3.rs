@@ -1,3 +1,6 @@
+use std::num::ParseIntError;
+
+use aoc_2023::adjacents;
 use itertools::Itertools;
 
 const INPUT: &str = include_str!("inputs/day3.txt");
@@ -9,13 +12,9 @@ enum State {
     FormNum((String, Vec<(usize, usize)>)),
 }
 
-fn main() -> anyhow::Result<()> {
-    let lines = INPUT.lines();
-
-    let cmap = lines
-        .map(|line| line.chars().collect::<Vec<char>>())
-        .collect::<Vec<_>>();
-
+fn parts_with_positions(
+    cmap: &[Vec<char>],
+) -> Result<Vec<(i64, Vec<(usize, usize)>)>, ParseIntError> {
     // Use a state machine to process the map into parts with a list of associated positions
     let mut parts = Vec::new();
     let mut s = State::None;
@@ -40,39 +39,25 @@ fn main() -> anyhow::Result<()> {
             }
         }
     }
+    // Push the final number if there was still one being constructed
     if let State::FormNum((cs, pl)) = s {
         parts.push((cs.parse::<i64>()?, pl));
     }
+    Ok(parts)
+}
+
+fn main() -> anyhow::Result<()> {
+    let lines = INPUT.lines();
+
+    let cmap = lines
+        .map(|line| line.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
+
+    let parts = parts_with_positions(&cmap)?;
 
     println!("{}", part1(&cmap, &parts)?);
     println!("{}", part2(&cmap, &parts)?);
     Ok(())
-}
-
-fn adjacents(
-    pos: (usize, usize),
-    rows: usize,
-    cols: usize,
-) -> impl Iterator<Item = (usize, usize)> {
-    [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ]
-    .into_iter()
-    .filter_map(move |(ro, co)| {
-        let r = pos.0 as isize + ro;
-        let c = pos.1 as isize + co;
-        if r == -1 || c == -1 || r as usize == rows || c as usize == cols {
-            return None;
-        }
-        Some((r as usize, c as usize))
-    })
 }
 
 /// Returns part numbers adjacent to given position
@@ -101,11 +86,9 @@ fn is_sym_adjacent<'a>(pos: (usize, usize), syms: &[char], map: &[Vec<char>]) ->
 
 fn part1(cmap: &[Vec<char>], parts: &[(i64, Vec<(usize, usize)>)]) -> anyhow::Result<i64> {
     let parts = parts.into_iter().filter_map(|(part_num, pl)| {
-        if pl.iter().any(|&pos| is_sym_adjacent(pos, SYMS, &cmap)) {
-            Some(part_num)
-        } else {
-            None
-        }
+        pl.iter()
+            .any(|&pos| is_sym_adjacent(pos, SYMS, cmap))
+            .then_some(part_num)
     });
 
     let part_sum = parts.sum::<i64>();
@@ -120,7 +103,7 @@ fn part2(cmap: &[Vec<char>], parts: &[(i64, Vec<(usize, usize)>)]) -> anyhow::Re
             .filter_map(move |(col, &ch)| (ch == '*').then_some((row, col)))
     });
     let gears = stars.filter_map(|(row, col)| {
-        let ns = adjacent_numbers((row, col), cmap.len(), cmap[0].len(), &parts);
+        let ns = adjacent_numbers((row, col), cmap.len(), cmap[0].len(), parts);
         (ns.len() == 2).then_some(ns)
     });
     let gear_ratios = gears.map(|ns| ns.into_iter().product::<i64>()).sum::<i64>();
