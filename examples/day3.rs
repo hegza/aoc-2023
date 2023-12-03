@@ -1,8 +1,5 @@
 use std::num::ParseIntError;
 
-use aoc_2023::adjacents;
-use itertools::Itertools;
-
 const INPUT: &str = include_str!("inputs/day3.txt");
 const SYMS: &[char] = &['$', '&', '=', '*', '#', '@', '%', '/', '+', '-'];
 
@@ -55,58 +52,74 @@ fn main() -> anyhow::Result<()> {
 
     let parts = parts_with_positions(&cmap)?;
 
-    println!("{}", part1(&cmap, &parts)?);
-    println!("{}", part2(&cmap, &parts)?);
+    println!("{}", part1::solve(&cmap, &parts)?);
+    println!("{}", part2::solve(&cmap, &parts)?);
     Ok(())
 }
 
-/// Returns part numbers adjacent to given position
-fn adjacent_numbers(
-    pos: (usize, usize),
-    rows: usize,
-    cols: usize,
-    parts: &[(i64, Vec<(usize, usize)>)],
-) -> Vec<i64> {
-    let adjacents = adjacents(pos, rows, cols).collect_vec();
-    parts
-        .iter()
-        .filter_map(|(part_num, part_positions)| {
-            part_positions
-                .iter()
-                .any(|part_pos| adjacents.contains(part_pos))
-                .then_some(*part_num)
-        })
-        .collect()
+mod part1 {
+    use crate::SYMS;
+    use aoc_2023::adjacents;
+
+    pub(crate) fn solve(
+        cmap: &[Vec<char>],
+        parts: &[(i64, Vec<(usize, usize)>)],
+    ) -> anyhow::Result<i64> {
+        let parts = parts.into_iter().filter_map(|(part_num, pl)| {
+            pl.iter()
+                .any(|&pos| is_sym_adjacent(pos, SYMS, cmap))
+                .then_some(part_num)
+        });
+
+        let part_sum = parts.sum::<i64>();
+
+        Ok(part_sum)
+    }
+
+    fn is_sym_adjacent<'a>(pos: (usize, usize), syms: &[char], map: &[Vec<char>]) -> bool {
+        adjacents((pos.0, pos.1), map.len(), map[0].len())
+            .any(|(row, col)| syms.contains(&map[row][col]))
+    }
 }
 
-fn is_sym_adjacent<'a>(pos: (usize, usize), syms: &[char], map: &[Vec<char>]) -> bool {
-    adjacents((pos.0, pos.1), map.len(), map[0].len())
-        .any(|(row, col)| syms.contains(&map[row][col]))
-}
+mod part2 {
+    use aoc_2023::adjacents;
+    use itertools::Itertools;
 
-fn part1(cmap: &[Vec<char>], parts: &[(i64, Vec<(usize, usize)>)]) -> anyhow::Result<i64> {
-    let parts = parts.into_iter().filter_map(|(part_num, pl)| {
-        pl.iter()
-            .any(|&pos| is_sym_adjacent(pos, SYMS, cmap))
-            .then_some(part_num)
-    });
+    pub(crate) fn solve(
+        cmap: &[Vec<char>],
+        parts: &[(i64, Vec<(usize, usize)>)],
+    ) -> anyhow::Result<i64> {
+        let stars = cmap.iter().enumerate().flat_map(|(row, line)| {
+            line.iter()
+                .enumerate()
+                .filter_map(move |(col, &ch)| (ch == '*').then_some((row, col)))
+        });
+        let gears = stars.filter_map(|(row, col)| {
+            let ns = adjacent_numbers((row, col), cmap.len(), cmap[0].len(), parts);
+            (ns.len() == 2).then_some(ns)
+        });
+        let gear_ratios = gears.map(|ns| ns.into_iter().product::<i64>()).sum::<i64>();
 
-    let part_sum = parts.sum::<i64>();
+        Ok(gear_ratios)
+    }
 
-    Ok(part_sum)
-}
-
-fn part2(cmap: &[Vec<char>], parts: &[(i64, Vec<(usize, usize)>)]) -> anyhow::Result<i64> {
-    let stars = cmap.iter().enumerate().flat_map(|(row, line)| {
-        line.iter()
-            .enumerate()
-            .filter_map(move |(col, &ch)| (ch == '*').then_some((row, col)))
-    });
-    let gears = stars.filter_map(|(row, col)| {
-        let ns = adjacent_numbers((row, col), cmap.len(), cmap[0].len(), parts);
-        (ns.len() == 2).then_some(ns)
-    });
-    let gear_ratios = gears.map(|ns| ns.into_iter().product::<i64>()).sum::<i64>();
-
-    Ok(gear_ratios)
+    /// Returns part numbers adjacent to given position
+    fn adjacent_numbers(
+        pos: (usize, usize),
+        rows: usize,
+        cols: usize,
+        parts: &[(i64, Vec<(usize, usize)>)],
+    ) -> Vec<i64> {
+        let adjacents = adjacents(pos, rows, cols).collect_vec();
+        parts
+            .iter()
+            .filter_map(|(part_num, part_positions)| {
+                part_positions
+                    .iter()
+                    .any(|part_pos| adjacents.contains(part_pos))
+                    .then_some(*part_num)
+            })
+            .collect()
+    }
 }
