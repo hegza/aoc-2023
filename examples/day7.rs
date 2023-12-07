@@ -11,10 +11,10 @@ impl Card {
         match self.0 {
             c if c.is_numeric() => c.to_digit(10).unwrap() as usize,
             'T' => 10,
-            'J' => 11,
             'Q' => 12,
             'K' => 13,
             'A' => 14,
+            'J' => 1,
             _ => panic!("not a card"),
         }
     }
@@ -52,7 +52,69 @@ enum Kind {
 }
 
 impl Hand {
-    fn kind(&self) -> Kind {
+    fn can_be_high(&self) -> bool {
+        let cs = &self.0;
+
+        cs.iter()
+            .unique()
+            .filter(|&x| x.0 != 'J')
+            .all(|c1| cs.iter().filter(|&c2| (c1.0 == c2.0)).count() == 1)
+    }
+
+    fn can_be_house(&self) -> bool {
+        let cs = &self.0;
+
+        let nonj_counts = cs
+            .iter()
+            .unique()
+            .filter(|x| x.0 != 'J')
+            .map(|c1| cs.iter().filter(|&c2| c2 == c1).count())
+            .collect_vec();
+        let pairs = nonj_counts.iter().filter(|&&count| count == 2).count();
+
+        let jcount = cs.iter().filter(|c| c.0 == 'J').count();
+        match jcount {
+            5 | 4 | 3 => true,
+            2 => !self.can_be_high(),
+            1 => pairs >= 2,
+            0 => nonj_counts.contains(&3) && nonj_counts.contains(&2),
+            _ => panic!(),
+        }
+    }
+
+    fn kind_with_joker_rule(&self) -> Kind {
+        let cs = &self.0;
+
+        let nonj_counts = cs
+            .iter()
+            .unique()
+            .map(|c1| cs.iter().filter(|&c2| (c2 == c1 || c2.0 == 'J')).count())
+            .collect_vec();
+        let of_kind = *nonj_counts.iter().max().unwrap();
+        let pairs = nonj_counts.iter().filter(|&&count| count == 2).count();
+
+        let jcount = cs.iter().filter(|c| c.0 == 'J').count();
+
+        if of_kind == 5 {
+            Kind::Five
+        } else if of_kind == 4 {
+            Kind::Four
+        } else if self.can_be_house() {
+            Kind::House
+        } else if of_kind == 3 {
+            Kind::Three
+        } else if pairs == 2 || jcount >= 2 {
+            Kind::TwoPair
+        } else if jcount != 0 {
+            Kind::OnePair
+        } else if self.can_be_high() {
+            Kind::High
+        } else {
+            Kind::None
+        }
+    }
+
+    fn kind_without_joker_rule(&self) -> Kind {
         let cs = &self.0;
 
         let counts = cs
@@ -86,7 +148,7 @@ impl Hand {
     }
 
     fn value(&self) -> usize {
-        self.kind() as usize
+        (self.kind_with_joker_rule() as usize).max(self.kind_without_joker_rule() as usize)
     }
 }
 
@@ -128,14 +190,20 @@ fn main() -> anyhow::Result<()> {
         hand1.partial_cmp(&hand2).expect("cannot order elements")
     });
 
-    /*
     for (rank, hand) in hands
         .iter()
-        .map(|(h, bid)| (h.0.iter().map(|c| c.0).collect_vec(), h.kind(), bid))
+        .map(|(h, bid)| {
+            (
+                h.0.iter().map(|c| c.0).collect_vec(),
+                h.kind_with_joker_rule(),
+                bid,
+            )
+        })
+        //.filter(|(h, _, _)| h.iter().filter(|&&c| c == 'J').count() == 2)
         .enumerate()
     {
         println!("{}: {:?}", rank + 1, &hand);
-    }*/
+    }
 
     let winnings: usize = hands
         .into_iter()
@@ -183,6 +251,7 @@ mod part1 {
             println!("{}: {:?}", rank + 1, &hand);
         }*/
 
+        /*
         let winnings: usize = hands
             .into_iter()
             .enumerate()
@@ -192,7 +261,7 @@ mod part1 {
             })
             .sum::<usize>();
 
-        println!("{winnings}");
+        println!("{winnings}");*/
         Ok(())
     }
 }
