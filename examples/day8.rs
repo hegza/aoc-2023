@@ -1,106 +1,94 @@
 use itertools::Itertools;
-use lcmx::lcmx;
 use regex::Regex;
 use std::collections::*;
 
 const INPUT: &str = include_str!("inputs/day8.txt");
 
+fn step<'a>(
+    cur: impl AsRef<str>,
+    i: char,
+    nodes: &'a HashMap<String, (String, String)>,
+) -> &'a String {
+    if i == 'L' {
+        &nodes[cur.as_ref()].0
+    } else {
+        &nodes[cur.as_ref()].1
+    }
+}
+
+fn count_until_cond(
+    start: &str,
+    instr: &[char],
+    nodes: &HashMap<String, (String, String)>,
+    cond: impl Fn(&str) -> bool,
+) -> i64 {
+    let mut n = 0;
+    let mut cur = start;
+    let mut instr = instr.into_iter().cycle();
+
+    while let Some(&i) = instr.next() {
+        if cond(cur) {
+            break;
+        }
+        cur = step(cur, i, &nodes);
+        n += 1;
+    }
+
+    n
+}
+
 fn main() -> anyhow::Result<()> {
     let mut lines = INPUT.lines();
-    let instr = lines.next().unwrap().chars();
+    let instr = lines.next().unwrap().chars().collect_vec();
 
     // Skip whitespace
     lines.next().unwrap();
 
+    let alpha_re = Regex::new(r"[A-Z]+")?;
     let nodes = lines
         .map(|s| {
             let (left, right) = s.split_once('=').unwrap();
+
             let src = left.trim().to_owned();
-            let re = Regex::new(r"[A-Z]+").unwrap();
-            let mut dests = re.captures_iter(right);
+
+            let mut dests = alpha_re.captures_iter(right);
             let dest1 = dests.next().unwrap()[0].to_owned();
             let dest2 = dests.next().unwrap()[0].to_owned();
+
             (src, (dest1, dest2))
         })
-        .collect::<HashMap<String, (String, String)>>();
+        .collect();
 
-    let starts = nodes
-        .keys()
-        .map(|s| s.to_string())
-        .filter(|s| s.ends_with('A'));
-
-    let cycles = starts
-        .map(|start| {
-            let mut cur = &start;
-            let mut n: u64 = 0;
-            let mut instr = instr.clone().cycle();
-
-            while let Some(i) = instr.next() {
-                if cur.ends_with('Z') {
-                    break;
-                }
-                if i == 'L' {
-                    cur = &nodes[cur].0;
-                } else {
-                    cur = &nodes[cur].1;
-                }
-                n += 1;
-            }
-            n
-        })
-        .collect_vec();
-    let lcm = lcmx(&cycles).unwrap();
-    println!("{}", lcm);
+    println!("Part 1: {}", part1::solve(&instr, &nodes));
+    println!("Part 2: {}", part2::solve(&instr, &nodes));
 
     Ok(())
 }
 
 mod part1 {
-    use regex::Regex;
+    use crate::count_until_cond;
     use std::collections::*;
 
-    const INPUT: &str = include_str!("inputs/day8.txt");
+    pub(crate) fn solve(instr: &[char], nodes: &HashMap<String, (String, String)>) -> i64 {
+        count_until_cond("AAA", instr, nodes, |s| s == "ZZZ")
+    }
+}
 
-    pub(crate) fn solve() -> anyhow::Result<()> {
-        let mut lines = INPUT.lines();
+mod part2 {
+    use crate::count_until_cond;
+    use itertools::Itertools;
+    use lcmx::lcmx;
+    use std::collections::HashMap;
 
-        let mut instr = lines.next().unwrap().chars();
+    pub(crate) fn solve(instr: &[char], nodes: &HashMap<String, (String, String)>) -> i64 {
+        let starts = nodes.keys().filter(|s| s.ends_with('A'));
 
-        // Skip whitespace
-        lines.next().unwrap();
+        let cycles = starts
+            .map(|start| count_until_cond(&start, instr, nodes, |s| s.ends_with('Z')) as u64)
+            .collect_vec();
 
-        let nodes = lines
-            .map(|s| {
-                let (left, right) = s.split_once('=').unwrap();
-                let src = left.trim().to_owned();
-                let re = Regex::new(r"[A-Z]+").unwrap();
-                let mut dests = re.captures_iter(right);
-                let dest1 = dests.next().unwrap()[0].to_owned();
-                let dest2 = dests.next().unwrap()[0].to_owned();
-                (src, (dest1, dest2))
-            })
-            .collect::<HashMap<String, (String, String)>>();
+        let lcm = lcmx(&cycles).unwrap();
 
-        for node in &nodes {
-            println!("{:?}", &node);
-        }
-
-        let mut n = 0;
-        let mut cur = "AAA";
-        let mut instr = instr.cycle();
-        while let Some(i) = instr.next() {
-            if cur == "ZZZ" {
-                break;
-            }
-            if i == 'L' {
-                cur = &nodes[cur].0;
-            } else {
-                cur = &nodes[cur].1;
-            }
-            n += 1;
-        }
-        println!("{n}");
-
-        Ok(())
+        lcm as i64
     }
 }
