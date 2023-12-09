@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use std::collections::*;
 
 const INPUT: &str = include_str!("inputs/day9.txt");
 
@@ -14,85 +13,61 @@ fn main() -> anyhow::Result<()> {
         })
         .collect::<Result<Vec<_>, _>>()?;
 
-    let predictions = histories.into_iter().map(|hist| {
-        let mut cur_diff = &hist;
-        let mut diffs = vec![hist.clone()];
-        loop {
-            let diff = cur_diff.windows(2).map(|win| win[1] - win[0]);
-            if diff.clone().all(|x| x == 0) {
-                break;
+    let diff_trees = histories
+        .into_iter()
+        .map(|hist| {
+            let mut diff_tree = vec![hist.clone()];
+            loop {
+                let diffs = diff_tree
+                    .last()
+                    .unwrap()
+                    .windows(2)
+                    .map(|win| win[1] - win[0]);
+                if diffs.clone().all(|x| x == 0) {
+                    break;
+                }
+                diff_tree.push(diffs.collect_vec());
             }
-            let diff = diff.collect_vec();
-            diffs.push(diff);
-            cur_diff = &diffs.last().unwrap();
-        }
-        println!("diffs for {:?}", &hist);
-        for d in &diffs {
-            println!("\t{:?}:", &d);
-        }
-        // Prediction
-        let mut it = diffs.into_iter().rev();
-        let mut cur = 0;
-        let mut prev = 0;
-        while let Some(diff) = it.next() {
-            cur = diff.first().unwrap() - prev;
-            prev = cur;
-            println!("\t{}", cur);
-        }
-        cur
-    });
+            diff_tree
+        })
+        .collect_vec();
 
-    println!("{}", predictions.sum::<i64>());
+    println!("Part 1: {}", part1::solve(&diff_trees));
+    println!("Part 2: {}", part2::solve(&diff_trees));
 
     Ok(())
 }
 
 mod part1 {
-    use itertools::Itertools;
-
-    const INPUT: &str = include_str!("inputs/day9.txt");
-
-    fn solve() -> anyhow::Result<()> {
-        let lines = INPUT.lines();
-
-        let histories = lines
-            .map(|line| {
-                line.split_whitespace()
-                    .map(|n| n.parse::<i64>())
-                    .collect::<Result<Vec<_>, _>>()
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let predictions = histories.into_iter().map(|hist| {
-            let mut cur_diff = &hist;
-            let mut diffs = vec![];
-            loop {
-                let diff = cur_diff.windows(2).map(|win| win[1] - win[0]);
-                if diff.clone().all(|x| x == 0) {
-                    break;
-                }
-                let diff = diff.collect_vec();
-                diffs.push(diff);
-                cur_diff = &diffs.last().unwrap();
-            }
-            diffs.push(hist);
-            for d in &diffs {
-                println!("\t{:?}:", &d);
-            }
-            // Prediction
+    pub(crate) fn solve(diff_trees: &[Vec<Vec<i64>>]) -> i64 {
+        let preds = diff_trees.into_iter().map(|diffs| {
             let mut it = diffs.into_iter().rev();
             let mut cur = 0;
             let mut prev = 0;
             while let Some(diff) = it.next() {
                 cur = diff.last().unwrap() + prev;
                 prev = cur;
-                println!("\t{}", cur);
             }
             cur
         });
 
-        println!("{}", predictions.sum::<i64>());
+        preds.sum::<i64>()
+    }
+}
 
-        Ok(())
+mod part2 {
+    pub(crate) fn solve(diff_trees: &[Vec<Vec<i64>>]) -> i64 {
+        let preds = diff_trees.into_iter().map(|diffs| {
+            let mut it = diffs.into_iter().rev();
+            let mut cur = 0;
+            let mut prev = 0;
+            while let Some(diff) = it.next() {
+                cur = diff.first().unwrap() - prev;
+                prev = cur;
+            }
+            cur
+        });
+
+        preds.sum::<i64>()
     }
 }
