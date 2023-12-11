@@ -1,5 +1,6 @@
 use std::ops;
 
+/// 2D coordinate represented as a two-value tuple
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Co2<T>(pub T, pub T);
 

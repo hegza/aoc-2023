@@ -1,5 +1,6 @@
 use std::ops;
 
+/// 3D coordinate represented as a three-value tuple
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Co3<T>(pub T, pub T, pub T);
 

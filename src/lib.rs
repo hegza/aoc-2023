@@ -14,25 +14,17 @@ pub fn adjacents(
     rows: usize,
     cols: usize,
 ) -> impl Iterator<Item = (usize, usize)> {
-    [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ]
-    .into_iter()
-    .filter_map(move |(r_off, col_off)| {
-        let r = co.0 as i64 + r_off;
-        let c = co.1 as i64 + col_off;
-        if r == -1 || c == -1 || r as usize == rows || c as usize == cols {
-            return None;
-        }
-        Some((r as usize, c as usize))
-    })
+    CARDINAL_OFFSETS
+        .iter()
+        .chain(DIAGONAL_OFFSETS.iter())
+        .filter_map(move |(r_off, col_off)| {
+            let r = co.0 as i64 + r_off;
+            let c = co.1 as i64 + col_off;
+            if r == -1 || c == -1 || r as usize == rows || c as usize == cols {
+                return None;
+            }
+            Some((r as usize, c as usize))
+        })
 }
 
 /// Look for `target` in `table` and returns its `(row, column)`
