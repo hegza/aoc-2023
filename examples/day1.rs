@@ -80,3 +80,13 @@ fn n_here(line: &str) -> Option<char> {
 fn is_digit(c: &char) -> bool {
     c.is_digit(10)
 }
+
+#[test]
+fn day1_part1() {
+    assert_eq!(part1(INPUT.lines()), 54630)
+}
+
+#[test]
+fn day1_part2() {
+    assert_eq!(part2(INPUT.lines()), 54770)
+}

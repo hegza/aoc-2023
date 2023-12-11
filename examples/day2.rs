@@ -83,3 +83,13 @@ fn part2(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
 
     Ok(sum)
 }
+
+#[test]
+fn day2_part1() {
+    assert_eq!(part1(INPUT.lines()).unwrap(), 2776)
+}
+
+#[test]
+fn day2_part2() {
+    assert_eq!(part2(INPUT.lines()).unwrap(), 68638)
+}

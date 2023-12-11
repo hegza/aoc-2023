@@ -123,3 +123,29 @@ mod part2 {
             .collect()
     }
 }
+
+#[test]
+fn day3_part1() {
+    let lines = INPUT.lines();
+
+    let cmap = lines
+        .map(|line| line.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
+
+    let parts = parts_with_positions(&cmap).unwrap();
+
+    assert_eq!(part1::solve(&cmap, &parts).unwrap(), 546563);
+}
+
+#[test]
+fn day3_part2() {
+    let lines = INPUT.lines();
+
+    let cmap = lines
+        .map(|line| line.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
+
+    let parts = parts_with_positions(&cmap).unwrap();
+
+    assert_eq!(part2::solve(&cmap, &parts).unwrap(), 91031374);
+}
