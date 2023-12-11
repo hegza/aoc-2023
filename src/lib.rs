@@ -1,3 +1,7 @@
+mod co;
+
+pub use co::*;
+
 pub const CARDINAL_OFFSETS: &[(i64, i64)] = &[(-1, 0), (1, 0), (0, -1), (0, 1)];
 pub const DIAGONAL_OFFSETS: &[(i64, i64)] = &[(-1, -1), (1, -1), (1, 1), (-1, 1)];
 

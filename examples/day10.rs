@@ -1,17 +1,23 @@
-use aoc_2023::{adjacents, find2d};
+use aoc_2023::{adjacents, find2d, Co2};
 use itertools::Itertools;
 use std::{collections::HashSet, num::TryFromIntError, ops};
 
 const INPUT: &str = include_str!("inputs/day10.txt");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct Co(usize, usize);
+struct Co(Co2<usize>);
 
-impl ops::Add for Co {
-    type Output = Co;
+impl ops::Deref for Co {
+    type Target = Co2<usize>;
 
-    fn add(self, rhs: Self) -> Self::Output {
-        Co(self.0 + rhs.0, self.1 + rhs.1)
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<(usize, usize)> for Co {
+    fn from(value: (usize, usize)) -> Self {
+        Co(Co2::from(value))
     }
 }
 
@@ -20,8 +26,8 @@ impl ops::Sub for Co {
 
     fn sub(self, rhs: Self) -> Self::Output {
         (
-            self.0 as isize - rhs.0 as isize,
-            self.1 as isize - rhs.1 as isize,
+            self.0 .0 as isize - rhs.0 .0 as isize,
+            self.0 .1 as isize - rhs.0 .1 as isize,
         )
     }
 }
@@ -36,25 +42,13 @@ impl ops::Add<Dir> for Co {
     }
 }
 
-impl From<(usize, usize)> for Co {
-    fn from(value: (usize, usize)) -> Self {
-        Self(value.0, value.1)
-    }
-}
-
 impl TryFrom<(isize, isize)> for Co {
     type Error = TryFromIntError;
 
     fn try_from(value: (isize, isize)) -> Result<Self, Self::Error> {
         let row = usize::try_from(value.0)?;
         let col = usize::try_from(value.1)?;
-        Ok(Self(row, col))
-    }
-}
-
-impl Co {
-    fn as_tuple(&self) -> (usize, usize) {
-        (self.0, self.1)
+        Ok(Self(Co2(row, col)))
     }
 }
 
@@ -112,11 +106,11 @@ fn connects_to(origin: Co, pipe_sym: char) -> Vec<Co> {
 }
 
 fn conns(origin: Co, map: &[Vec<char>]) -> Vec<Co> {
-    let pipe_sym = map[origin.0][origin.1];
+    let pipe_sym = map[origin.0 .0][origin.0 .1];
 
     connects_to(origin, pipe_sym)
         .into_iter()
-        .filter(|dest| connects_to(*dest, map[dest.0][dest.1]).contains(&origin))
+        .filter(|dest| connects_to(*dest, map[dest.0 .0][dest.0 .1]).contains(&origin))
         .collect_vec()
 }
 
@@ -142,7 +136,7 @@ fn flood_fill(enclosed: &mut HashSet<Co>, path: &[Co], co: Co, map: &[Vec<char>]
     if !path.contains(&co) {
         enclosed.insert(co);
         adjacents(co.as_tuple(), map.len(), map[0].len()).for_each(|co| {
-            let co = co.into();
+            let co: Co = co.into();
             if !enclosed.contains(&co) && !path.contains(&co) {
                 flood_fill(enclosed, path, co, map)
             }
