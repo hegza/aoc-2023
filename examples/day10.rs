@@ -1,4 +1,4 @@
-use aoc_2023::adjacents;
+use aoc_2023::{adjacents, find2d};
 use itertools::Itertools;
 use std::{collections::HashSet, num::TryFromIntError, ops};
 
@@ -158,45 +158,27 @@ fn main() -> anyhow::Result<()> {
         .map(|line| line.chars().collect_vec())
         .collect_vec();
 
-    let start: Co = map
-        .iter()
-        .enumerate()
-        .find_map(|(row, line)| {
-            line.iter()
-                .position(|&c| c == 'S')
-                .and_then(|col| Some((row, col)))
-        })
-        .unwrap()
-        .into();
+    // Find the 'S' and make it into a coordinate
+    let start: Co = find2d(&'S', &map).unwrap().into();
 
-    let mut path = vec![start];
+    // Trace the path / cycle by following the pipes
+    let path = trace_path(start, &map);
 
-    let mut prev = start;
-    let mut cursor = start;
-    let mut step_count = 0;
+    println!("Part 1: {}", path.len() / 2);
+
+    let enclosed = find_enclosed(path, map);
+
+    println!("Part 2: {}", enclosed.len());
+
+    Ok(())
+}
+
+fn find_enclosed(path: Vec<Co>, map: Vec<Vec<char>>) -> HashSet<Co> {
     let mut enclosed = HashSet::new();
-    loop {
-        // Update cursor
-        let next = conns(cursor, &map)
-            .into_iter()
-            .find(|conn| *conn != prev)
-            .unwrap();
-        prev = cursor;
-        cursor = next;
-        step_count += 1;
 
-        if cursor == start {
-            break;
-        }
-
-        path.push(cursor);
-    }
-
-    println!("cycle len: {}", step_count);
-    println!("furthest: {}", step_count / 2);
-
+    let mut path_it = path.iter();
+    let start = *path_it.next().unwrap();
     let mut prev = start;
-    let mut path_it = path.iter().skip(1);
 
     while let Some(next) = path_it.next() {
         let dir = Dir::from(*next - prev);
@@ -221,23 +203,65 @@ fn main() -> anyhow::Result<()> {
             flood_fill(&mut enclosed, &path, closed_co.try_into().unwrap(), &map);
         }
     }
+    enclosed
+}
 
-    println!("Part 2: {}", enclosed.len());
+fn trace_path(start: Co, map: &[Vec<char>]) -> Vec<Co> {
+    let mut prev = start;
+    let mut cursor = start;
+    let mut path = vec![start];
+    loop {
+        // Update cursor
+        let next = conns(cursor, map)
+            .into_iter()
+            .find(|conn| *conn != prev)
+            .unwrap();
+        prev = cursor;
+        cursor = next;
 
-    /*
-    for (row, line) in map.iter().enumerate() {
-        for (col, c) in line.iter().enumerate() {
-            let co: Co = (row, col).into();
-            if enclosed.contains(&co) {
-                print!("#");
-            } else if path.contains(&co) {
-                print!("{c}");
-            } else {
-                print!(" ");
-            }
+        if cursor == start {
+            break;
         }
-        println!();
-    } */
 
-    Ok(())
+        path.push(cursor);
+    }
+    path
+}
+
+#[test]
+fn day10_part1() {
+    let lines = INPUT.lines();
+
+    let map = lines
+        .into_iter()
+        .map(|line| line.chars().collect_vec())
+        .collect_vec();
+
+    // Find the 'S' and make it into a coordinate
+    let start: Co = find2d(&'S', &map).unwrap().into();
+
+    // Trace the path / cycle by following the pipes
+    let path = trace_path(start, &map);
+
+    assert_eq!(path.len() / 2, 6714);
+}
+
+#[test]
+fn day10_part2() {
+    let lines = INPUT.lines();
+
+    let map = lines
+        .into_iter()
+        .map(|line| line.chars().collect_vec())
+        .collect_vec();
+
+    // Find the 'S' and make it into a coordinate
+    let start: Co = find2d(&'S', &map).unwrap().into();
+
+    // Trace the path / cycle by following the pipes
+    let path = trace_path(start, &map);
+
+    let enclosed = find_enclosed(path, map);
+
+    assert_eq!(enclosed.len(), 429);
 }
