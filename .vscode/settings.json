@@ -1,5 +1,5 @@
 {
-    "rust-analyzer.checkOnSave.extraArgs": [
+    "rust-analyzer.cargo.extraArgs": [
         "--examples"
-    ]
+    ],
 }
