@@ -25,10 +25,7 @@ impl ops::Sub for Co {
     type Output = (isize, isize);
 
     fn sub(self, rhs: Self) -> Self::Output {
-        (
-            self.0 .0 as isize - rhs.0 .0 as isize,
-            self.0 .1 as isize - rhs.0 .1 as isize,
-        )
+        self.0 - rhs.0
     }
 }
 
@@ -46,9 +43,7 @@ impl TryFrom<(isize, isize)> for Co {
     type Error = TryFromIntError;
 
     fn try_from(value: (isize, isize)) -> Result<Self, Self::Error> {
-        let row = usize::try_from(value.0)?;
-        let col = usize::try_from(value.1)?;
-        Ok(Self(Co2(row, col)))
+        Ok(Self(Co2::try_from(value)?))
     }
 }
 
