@@ -1,6 +1,8 @@
-mod co;
+mod co2;
+mod co3;
 
-pub use co::*;
+pub use co2::*;
+pub use co3::*;
 
 pub const CARDINAL_OFFSETS: &[(i64, i64)] = &[(-1, 0), (1, 0), (0, -1), (0, 1)];
 pub const DIAGONAL_OFFSETS: &[(i64, i64)] = &[(-1, -1), (1, -1), (1, 1), (-1, 1)];
