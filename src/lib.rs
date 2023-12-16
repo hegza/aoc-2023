@@ -28,13 +28,12 @@ pub fn adjacents(
 }
 
 /// Look for `target` in `table` and returns its `(row, column)`
-pub fn find2d<'a, T>(target: &T, table: &[Vec<T>]) -> Option<(usize, usize)>
+pub fn find2d<T>(target: &T, table: &[Vec<T>]) -> Option<(usize, usize)>
 where
     T: PartialEq,
 {
-    table.into_iter().enumerate().find_map(|(row, line)| {
-        line.iter()
-            .position(|c| c == target)
-            .and_then(|col| Some((row, col)))
-    })
+    table
+        .iter()
+        .enumerate()
+        .find_map(|(row, line)| line.iter().position(|c| c == target).map(|col| (row, col)))
 }

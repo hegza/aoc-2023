@@ -51,7 +51,7 @@ fn pairwise_dist<'a>(
 ) -> impl Iterator<Item = i64> + 'a {
     galaxies.iter().combinations(2).map(move |pair| {
         let (a, b) = (pair[0], pair[1]);
-        dist(*a, *b, exp_factor, &expy, &expx)
+        dist(*a, *b, exp_factor, expy, expx)
     })
 }
 

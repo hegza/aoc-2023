@@ -28,7 +28,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 mod part1 {
-    pub(crate) fn solve<'a>(
+    pub(crate) fn solve(
         times: impl Iterator<Item = impl AsRef<str>>,
         distances: impl Iterator<Item = impl AsRef<str>>,
     ) -> anyhow::Result<i64> {

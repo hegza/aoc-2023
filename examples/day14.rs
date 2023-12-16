@@ -31,7 +31,7 @@ impl Dir {
 }
 
 fn can_move(start_pos: (usize, usize), dir: Dir, rocks: &[Vec<char>]) -> usize {
-    let mut pos = start_pos.clone();
+    let mut pos = start_pos;
     let mut n = 0;
     loop {
         // Row zero -> cannot move at all
@@ -98,12 +98,12 @@ fn main() -> anyhow::Result<()> {
     */
 
     let mut moved_rocks = rocks.clone();
-    let mut it = iter::repeat([Dir::North, Dir::West, Dir::South, Dir::East])
+    let it = iter::repeat([Dir::North, Dir::West, Dir::South, Dir::East])
         .enumerate()
         .take(1000000000);
     let mut load_trace = vec![];
     let mut cycle = (0, 0);
-    while let Some((spin_idx, spin_dirs)) = it.next() {
+    for (spin_idx, spin_dirs) in it {
         // Spin 4 times
         spin_dirs.iter().for_each(|spin_dir| {
             let mut row_it = 0..moved_rocks.len();

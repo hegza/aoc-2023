@@ -60,7 +60,7 @@ fn can_be_house(hand: &[char]) -> bool {
 
     let jcount = hand.iter().filter(|&&c| c == 'J').count();
     match jcount {
-        5 | 4 | 3 => true,
+        3..=5 => true,
         2 => !hand
             .iter()
             .unique()

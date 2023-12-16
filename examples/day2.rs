@@ -20,17 +20,17 @@ fn find_num_re(re: &str, haystack: &str) -> anyhow::Result<i64> {
     }
 }
 
-fn part1(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
+fn part1(lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
     let mut sum = 0;
-    while let Some(line) = lines.next() {
+    for line in lines {
         let (game_s, rest) = line.split_once(':').unwrap();
 
         let mut rmax = 0;
         let mut bmax = 0;
         let mut gmax = 0;
 
-        let mut it = rest.split(';');
-        while let Some(set) = it.next() {
+        let it = rest.split(';');
+        for set in it {
             let r = find_num_re(r"(\d+) red", set)?;
             if r > rmax {
                 rmax = r;
@@ -53,17 +53,17 @@ fn part1(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
     Ok(sum)
 }
 
-fn part2(mut lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
+fn part2(lines: std::str::Lines<'_>) -> anyhow::Result<i64> {
     let mut sum = 0;
-    while let Some(line) = lines.next() {
+    for line in lines {
         let (_, rest) = line.split_once(':').unwrap();
 
         let mut rmax = 0;
         let mut bmax = 0;
         let mut gmax = 0;
 
-        let mut it = rest.split(';');
-        while let Some(set) = it.next() {
+        let it = rest.split(';');
+        for set in it {
             let r = find_num_re(r"(\d+) red", set)?;
             if r > rmax {
                 rmax = r;

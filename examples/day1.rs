@@ -12,10 +12,10 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn part1(mut lines: Lines<'_>) -> i64 {
+fn part1(lines: Lines<'_>) -> i64 {
     let mut sum = 0;
 
-    while let Some(line) = lines.next() {
+    for line in lines {
         let first = line.chars().find(is_digit).unwrap();
         let last = line.chars().rev().find(is_digit).unwrap();
 
@@ -27,10 +27,10 @@ fn part1(mut lines: Lines<'_>) -> i64 {
     sum
 }
 
-fn part2(mut lines: Lines<'_>) -> i64 {
+fn part2(lines: Lines<'_>) -> i64 {
     let mut sum = 0;
 
-    while let Some(line) = lines.next() {
+    for line in lines {
         let first = search(line, true);
         let last = search(line, false);
 
@@ -54,7 +54,7 @@ fn search(line: &str, first: bool) -> char {
 }
 
 fn n_here(line: &str) -> Option<char> {
-    let fc = line.chars().nth(0).unwrap();
+    let fc = line.chars().next().unwrap();
     if is_digit(&fc) {
         return Some(fc);
     };
@@ -78,7 +78,7 @@ fn n_here(line: &str) -> Option<char> {
 }
 
 fn is_digit(c: &char) -> bool {
-    c.is_digit(10)
+    c.is_ascii_digit()
 }
 
 #[test]

@@ -11,7 +11,7 @@ fn hash(s: &str) -> u8 {
         cur = cur.wrapping_mul(17);
         // cur %= 256;
     }
-    cur as u8
+    cur
 }
 
 fn to_instr<'s>(s: &'s str, re: &Regex) -> (&'s str, usize, char, Option<u8>) {
@@ -20,14 +20,14 @@ fn to_instr<'s>(s: &'s str, re: &Regex) -> (&'s str, usize, char, Option<u8>) {
 
     let label = m1.get(1).unwrap().as_str();
     let hs = hash(label);
-    let op = m1.get(2).unwrap().as_str().chars().nth(0).unwrap();
+    let op = m1.get(2).unwrap().as_str().chars().next().unwrap();
     let num_opt = m1.get(3).map(|n| n.as_str().parse::<u8>().unwrap());
 
     (label, hs as usize, op, num_opt)
 }
 
-fn _to_instr2<'s>(s: &'s str) -> (&'s str, usize, char, Option<u8>) {
-    let split_idx = s.find(&['=', '-']).unwrap();
+fn _to_instr2(s: &str) -> (&str, usize, char, Option<u8>) {
+    let split_idx = s.find(['=', '-']).unwrap();
     let label = &s[0..split_idx];
     let hs = hash(label);
     let op = s.chars().nth(split_idx).unwrap();

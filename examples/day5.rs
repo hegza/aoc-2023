@@ -125,7 +125,7 @@ mod part2 {
 
         let seeds = ranges
             .into_iter()
-            .flat_map(|(start, len)| (start..start + len).into_iter());
+            .flat_map(|(start, len)| (start..start + len));
 
         let maps = parse_maps(lines)?;
         let locations = seeds.map(|seed| maps.iter().fold(seed, |val, map| map.map(val)));

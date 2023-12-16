@@ -40,11 +40,11 @@ fn main() -> anyhow::Result<()> {
 
 mod part1 {
     pub(crate) fn solve(diff_trees: &[Vec<Vec<i64>>]) -> i64 {
-        let preds = diff_trees.into_iter().map(|diffs| {
-            let mut it = diffs.into_iter().rev();
+        let preds = diff_trees.iter().map(|diffs| {
+            let it = diffs.iter().rev();
             let mut cur = 0;
             let mut prev = 0;
-            while let Some(diff) = it.next() {
+            for diff in it {
                 cur = diff.last().unwrap() + prev;
                 prev = cur;
             }
@@ -57,11 +57,11 @@ mod part1 {
 
 mod part2 {
     pub(crate) fn solve(diff_trees: &[Vec<Vec<i64>>]) -> i64 {
-        let preds = diff_trees.into_iter().map(|diffs| {
-            let mut it = diffs.into_iter().rev();
+        let preds = diff_trees.iter().map(|diffs| {
+            let it = diffs.iter().rev();
             let mut cur = 0;
             let mut prev = 0;
-            while let Some(diff) = it.next() {
+            for diff in it {
                 cur = diff.first().unwrap() - prev;
                 prev = cur;
             }

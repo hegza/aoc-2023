@@ -4,11 +4,7 @@ use std::collections::*;
 
 const INPUT: &str = include_str!("inputs/day8.txt");
 
-fn step<'a>(
-    cur: impl AsRef<str>,
-    i: char,
-    nodes: &'a HashMap<String, (String, String)>,
-) -> &'a String {
+fn step(cur: impl AsRef<str>, i: char, nodes: &HashMap<String, (String, String)>) -> &String {
     if i == 'L' {
         &nodes[cur.as_ref()].0
     } else {
@@ -24,13 +20,13 @@ fn count_until_cond(
 ) -> i64 {
     let mut n = 0;
     let mut cur = start;
-    let mut instr = instr.into_iter().cycle();
+    let instr = instr.iter().cycle();
 
-    while let Some(&i) = instr.next() {
+    for &i in instr {
         if cond(cur) {
             break;
         }
-        cur = step(cur, i, &nodes);
+        cur = step(cur, i, nodes);
         n += 1;
     }
 
@@ -84,7 +80,7 @@ mod part2 {
         let starts = nodes.keys().filter(|s| s.ends_with('A'));
 
         let cycles = starts
-            .map(|start| count_until_cond(&start, instr, nodes, |s| s.ends_with('Z')) as u64)
+            .map(|start| count_until_cond(start, instr, nodes, |s| s.ends_with('Z')) as u64)
             .collect_vec();
 
         let lcm = lcmx(&cycles).unwrap();

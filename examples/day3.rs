@@ -65,7 +65,7 @@ mod part1 {
         cmap: &[Vec<char>],
         parts: &[(i64, Vec<(usize, usize)>)],
     ) -> anyhow::Result<i64> {
-        let parts = parts.into_iter().filter_map(|(part_num, pl)| {
+        let parts = parts.iter().filter_map(|(part_num, pl)| {
             pl.iter()
                 .any(|&pos| is_sym_adjacent(pos, SYMS, cmap))
                 .then_some(part_num)
@@ -76,7 +76,7 @@ mod part1 {
         Ok(part_sum)
     }
 
-    fn is_sym_adjacent<'a>(pos: (usize, usize), syms: &[char], map: &[Vec<char>]) -> bool {
+    fn is_sym_adjacent(pos: (usize, usize), syms: &[char], map: &[Vec<char>]) -> bool {
         adjacents((pos.0, pos.1), map.len(), map[0].len())
             .any(|(row, col)| syms.contains(&map[row][col]))
     }

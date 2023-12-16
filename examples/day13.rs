@@ -30,15 +30,15 @@ fn is_mirror(line: usize, pat: &[Vec<bool>]) -> bool {
 
 /// Finds the first mirror in the pattern
 fn find_mirror(pat: &[Vec<bool>]) -> Option<usize> {
-    seams(&pat).find(|line| is_mirror(*line, pat))
+    seams(pat).find(|line| is_mirror(*line, pat))
 }
 
 fn parse(input: &str) -> Vec<Vec<Vec<bool>>> {
-    let mut lines = input.lines();
+    let lines = input.lines();
 
     let mut patterns = vec![];
     let mut cur_pat = vec![];
-    while let Some(line) = lines.next() {
+    for line in lines {
         if line.is_empty() {
             patterns.push(cur_pat);
             cur_pat = vec![];
@@ -75,7 +75,7 @@ mod part1 {
 
     pub(crate) fn solve(input: &str) -> i64 {
         let patterns = parse(input);
-        let tpatterns = patterns.iter().map(|pattern| transpose(pattern));
+        let tpatterns = patterns.iter().map(transpose);
 
         let sum: usize = patterns
             .iter()
@@ -114,8 +114,8 @@ mod part2 {
             .iter()
             .zip(combinations)
             .map(|(orig, many_pats)| {
-                let orig_hline = find_mirror(&orig);
-                let orig_vline = find_mirror(&transpose(&orig));
+                let orig_hline = find_mirror(orig);
+                let orig_vline = find_mirror(&transpose(orig));
                 many_pats
                     .map(|pat| (pat.clone(), transpose(&pat)))
                     .find_map(|(pat, tpat)| {

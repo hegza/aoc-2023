@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::{fmt, iter};
 
-const TEST_INPUT: &str = include_str!("inputs/day12_test.txt");
+const _TEST_INPUT: &str = include_str!("inputs/day12_test.txt");
 const INPUT: &str = include_str!("inputs/day12.txt");
 
 #[derive(PartialEq, Clone)]
@@ -89,8 +89,8 @@ fn permutations<'s>(springs: &'s [Status]) -> Box<dyn Iterator<Item = Vec<usize>
 
         let solutions = pleft
             .into_iter()
-            .cartesian_product(pright.into_iter())
-            .map(|(left, right)| left.into_iter().chain(right.into_iter()).collect());
+            .cartesian_product(pright)
+            .map(|(left, right)| left.into_iter().chain(right).collect());
 
         Box::new(solutions)
     }
@@ -99,7 +99,7 @@ fn permutations<'s>(springs: &'s [Status]) -> Box<dyn Iterator<Item = Vec<usize>
         let unknown_indices = springs
             .iter()
             .enumerate()
-            .filter_map(|(idx, status)| (status == &Status::Unknown).then(|| idx));
+            .filter_map(|(idx, status)| (status == &Status::Unknown).then_some(idx));
         let solutions = unknown_indices.flat_map(|idx| {
             let mut resolved_active = springs.to_vec();
             resolved_active[idx] = Status::Active;
@@ -109,7 +109,7 @@ fn permutations<'s>(springs: &'s [Status]) -> Box<dyn Iterator<Item = Vec<usize>
             resolved_inactive[idx] = Status::Inactive;
             let pinactive = permutations(&resolved_inactive).collect_vec();
 
-            pactive.into_iter().chain(pinactive.into_iter())
+            pactive.into_iter().chain(pinactive)
         });
 
         Box::new(solutions)
@@ -143,7 +143,7 @@ fn part1(input: &str) -> i64 {
 }
 
 fn main() -> anyhow::Result<()> {
-    let p1_test = part1(TEST_INPUT);
+    let p1_test = part1(INPUT);
     assert_eq!(p1_test, 21);
 
     /*

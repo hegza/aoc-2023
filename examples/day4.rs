@@ -34,12 +34,12 @@ mod part1 {
         let sum = cards
             .iter()
             .map(|(winning, mine)| {
-                let count = winning.intersection(&mine).count() as i64;
-                let points = match count {
+                let count = winning.intersection(mine).count() as i64;
+                
+                match count {
                     n @ (0 | 1) => n,
                     n => 2i64.pow((n - 1) as u32),
-                };
-                points
+                }
             })
             .sum();
         Ok(sum)
@@ -52,8 +52,7 @@ mod part2 {
     pub(crate) fn solve(cards: &[(HashSet<i64>, HashSet<i64>)]) -> anyhow::Result<i64> {
         let mut pmemo: Vec<Option<i64>> = vec![None; cards.len()];
         let sum: i64 = (0..cards.len())
-            .into_iter()
-            .map(|idx| full_count(idx, &cards, &mut pmemo))
+            .map(|idx| full_count(idx, cards, &mut pmemo))
             .sum();
 
         Ok(sum)
@@ -68,12 +67,11 @@ mod part2 {
             points
         } else {
             let (winning, mine) = &cards[idx];
-            let full_count = match winning.intersection(&mine).count() {
+            let full_count = match winning.intersection(mine).count() {
                 0 => 1,
                 n => {
-                    1 + ((idx + 1)..(idx + 1 + n as usize))
-                        .into_iter()
-                        .map(|idx| full_count(idx, &cards, pmemo))
+                    1 + ((idx + 1)..(idx + 1 + n))
+                        .map(|idx| full_count(idx, cards, pmemo))
                         .sum::<i64>()
                 }
             };

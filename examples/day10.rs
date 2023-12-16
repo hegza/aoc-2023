@@ -95,7 +95,7 @@ fn pipe_dirs(pipe_sym: char) -> &'static [Dir] {
 
 fn connects_to(origin: Co, pipe_sym: char) -> Vec<Co> {
     pipe_dirs(pipe_sym)
-        .into_iter()
+        .iter()
         .filter_map(|dir| (origin + *dir).try_into().ok())
         .collect()
 }
@@ -169,7 +169,7 @@ fn find_enclosed(path: Vec<Co>, map: Vec<Vec<char>>) -> HashSet<Co> {
     let start = *path_it.next().unwrap();
     let mut prev = start;
 
-    while let Some(next) = path_it.next() {
+    for next in path_it {
         let dir = Dir::from(*next - prev);
 
         let closed_co = prev + _port(dir);
