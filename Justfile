@@ -10,6 +10,9 @@ release IDX:
 profile IDX:
     CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph --example=day{{IDX}}
 
+clippy IDX:
+    cargo clippy --example=day{{IDX}}
+
 test:
     cargo test --release
     cargo test --examples --release
