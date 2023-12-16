@@ -1,8 +1,7 @@
-use itertools::Itertools;
-use std::collections::*;
+use std::collections::HashSet;
 
 const INPUT: &str = include_str!("inputs/day16.txt");
-const INPUT_TEST: &str = include_str!("inputs/day16_test.txt");
+const _INPUT_TEST: &str = include_str!("inputs/day16_test.txt");
 
 type Co = (usize, usize);
 
@@ -35,20 +34,32 @@ impl Dir {
 
 fn try_add(co: Co, dir: Dir, w: usize, h: usize) -> Option<Co> {
     let d = dir.as_tuple();
-    co.0.checked_add_signed(d.0)
-        .filter(|&row| row < h)
-        .and_then(|a| {
-            co.1.checked_add_signed(d.1)
-                .filter(|&col| col < w)
-                .map(|b| (a, b))
-        })
+    let a = co.0.checked_add_signed(d.0);
+    let b = co.1.checked_add_signed(d.1);
+    a.zip(b).filter(|&(row, col)| row < h && col < w)
 }
 
 fn next(co: Co, dir: Dir, square: char, w: usize, h: usize) -> Box<dyn Iterator<Item = (Co, Dir)>> {
+    // Continue in the same direction
+    let fwd = || Box::new(try_step(co, dir, w, h).into_iter());
+
+    // Turn to new direction
+    let turn = |ndir| Box::new(try_step(co, ndir, w, h).into_iter());
+
+    // Split beam in two
+    let split = |dir1, dir2| {
+        Box::new(
+            try_step(co, dir1, w, h)
+                .into_iter()
+                .chain(try_step(co, dir2, w, h)),
+        )
+    };
+
     use Dir as D;
     match square {
         // Continue in the same direction
-        '.' => Box::new(try_step(co, dir, w, h).into_iter()),
+        '.' => fwd(),
+        // Refract
         '/' => {
             let ndir = match dir {
                 D::North => D::East,
@@ -56,8 +67,9 @@ fn next(co: Co, dir: Dir, square: char, w: usize, h: usize) -> Box<dyn Iterator<
                 D::South => D::West,
                 D::West => D::South,
             };
-            Box::new(try_step(co, ndir, w, h).into_iter())
+            turn(ndir)
         }
+        // Refract
         '\\' => {
             let ndir = match dir {
                 D::North => D::West,
@@ -65,32 +77,24 @@ fn next(co: Co, dir: Dir, square: char, w: usize, h: usize) -> Box<dyn Iterator<
                 D::South => D::East,
                 D::West => D::North,
             };
-            Box::new(try_step(co, ndir, w, h).into_iter())
+            turn(ndir)
         }
         '|' => {
+            // Split in two
             if dir.is_horizontal() {
-                Box::new(try_step(co, Dir::North, w, h).into_iter().chain(try_step(
-                    co,
-                    Dir::South,
-                    w,
-                    h,
-                )))
+                split(Dir::North, Dir::South)
             } else {
                 // Continue in the same direction
-                Box::new(try_step(co, dir, w, h).into_iter())
+                fwd()
             }
         }
         '-' => {
+            // Split in two
             if dir.is_vertical() {
-                Box::new(try_step(co, Dir::West, w, h).into_iter().chain(try_step(
-                    co,
-                    Dir::East,
-                    w,
-                    h,
-                )))
+                split(Dir::West, Dir::East)
             } else {
                 // Continue in the same direction
-                Box::new(try_step(co, dir, w, h).into_iter())
+                fwd()
             }
         }
         _ => panic!(),
@@ -101,21 +105,7 @@ fn try_step(co: Co, dir: Dir, w: usize, h: usize) -> Option<((usize, usize), Dir
     try_add(co, dir, w, h).map(|nco| (nco, dir))
 }
 
-fn trace(co: Co, dir: Dir, grid: &[Vec<char>], visited: &mut HashSet<(Co, Dir)>, depth: usize) {
-    /*
-    for (y, line) in grid.iter().enumerate() {
-        for (x, c) in line.iter().enumerate() {
-            if visited.contains(&(y, x)) {
-                print!("#");
-            } else {
-                print!("{c}");
-            }
-        }
-        println!();
-    }
-    println!();
-    */
-
+fn trace(co: Co, dir: Dir, grid: &[Vec<char>], visited: &mut HashSet<(Co, Dir)>) {
     // Break on cycles
     if !visited.insert((co, dir)) {
         return;
@@ -123,20 +113,18 @@ fn trace(co: Co, dir: Dir, grid: &[Vec<char>], visited: &mut HashSet<(Co, Dir)>,
 
     let (w, h) = (grid[0].len(), grid.len());
 
-    next(co, dir, grid[co.0][co.1], w, h)
-        .for_each(|(nco, ndir)| trace(nco, ndir, grid, visited, depth + 1));
+    next(co, dir, grid[co.0][co.1], w, h).for_each(|(nco, ndir)| trace(nco, ndir, grid, visited));
 }
 
 fn count_energized(start: (Co, Dir), grid: &[Vec<char>]) -> usize {
     let mut visited: HashSet<(Co, Dir)> = [].into_iter().collect();
-    trace(start.0, start.1, &grid, &mut visited, 0);
+    trace(start.0, start.1, grid, &mut visited);
 
-    let energized = visited
+    visited
         .into_iter()
         .map(|(co, _dir)| co)
         .collect::<HashSet<_>>()
-        .len();
-    energized
+        .len()
 }
 
 fn main() -> anyhow::Result<()> {
@@ -144,41 +132,16 @@ fn main() -> anyhow::Result<()> {
     assert_eq!(p1, 7608);
     println!("Part 1: {p1}");
 
-    let grid = INPUT
-        .lines()
-        .map(|line| line.chars().collect_vec())
-        .collect_vec();
-
-    let max = (0..grid.len())
-        .into_iter()
-        .map(|row| ((row, 0), Dir::East))
-        .chain(
-            (0..grid.len())
-                .into_iter()
-                .map(|row| ((row, grid[0].len() - 1), Dir::West)),
-        )
-        .chain(
-            (0..grid[0].len())
-                .into_iter()
-                .map(|col| ((0, col), Dir::South)),
-        )
-        .chain(
-            (0..grid[0].len())
-                .into_iter()
-                .map(|col| ((grid.len() - 1, col), Dir::North)),
-        )
-        .map(|start| count_energized(start, &grid))
-        .max()
-        .unwrap();
-    println!("Part 2: {max}");
+    let p2 = part2::solve(INPUT);
+    assert_eq!(p2, 8221);
+    println!("Part 2: {p2}");
 
     Ok(())
 }
 
 mod part1 {
-    use crate::{trace, Co, Dir};
+    use crate::{count_energized, Dir};
     use itertools::Itertools;
-    use std::collections::HashSet;
 
     pub(crate) fn solve(input: &str) -> i64 {
         let grid = input
@@ -186,14 +149,30 @@ mod part1 {
             .map(|line| line.chars().collect_vec())
             .collect_vec();
 
-        let mut visited: HashSet<(Co, Dir)> = [].into_iter().collect();
-        trace((0, 0), Dir::East, &grid, &mut visited, 0);
+        count_energized(((0, 0), Dir::East), &grid) as i64
+    }
+}
 
-        let energized = visited
-            .into_iter()
-            .map(|(co, _dir)| co)
-            .collect::<HashSet<_>>()
-            .len();
-        energized as i64
+mod part2 {
+    use itertools::Itertools;
+
+    use crate::{count_energized, Dir};
+
+    pub(crate) fn solve(input: &str) -> i64 {
+        let grid = input
+            .lines()
+            .map(|line| line.chars().collect_vec())
+            .collect_vec();
+
+        let max = (0..grid.len())
+            .map(|row| ((row, 0), Dir::East))
+            .chain((0..grid.len()).map(|row| ((row, grid[0].len() - 1), Dir::West)))
+            .chain((0..grid[0].len()).map(|col| ((0, col), Dir::South)))
+            .chain((0..grid[0].len()).map(|col| ((grid.len() - 1, col), Dir::North)))
+            .map(|start| count_energized(start, &grid))
+            .max()
+            .unwrap();
+
+        max as i64
     }
 }
