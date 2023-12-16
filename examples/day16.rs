@@ -127,19 +127,73 @@ fn trace(co: Co, dir: Dir, grid: &[Vec<char>], visited: &mut HashSet<(Co, Dir)>,
         .for_each(|(nco, ndir)| trace(nco, ndir, grid, visited, depth + 1));
 }
 
-fn main() -> anyhow::Result<()> {
-    let lines = INPUT.lines();
-    let grid = lines.map(|line| line.chars().collect_vec()).collect_vec();
-
+fn count_energized(start: (Co, Dir), grid: &[Vec<char>]) -> usize {
     let mut visited: HashSet<(Co, Dir)> = [].into_iter().collect();
-    trace((0, 0), Dir::East, &grid, &mut visited, 0);
+    trace(start.0, start.1, &grid, &mut visited, 0);
 
     let energized = visited
         .into_iter()
         .map(|(co, _dir)| co)
         .collect::<HashSet<_>>()
         .len();
-    println!("Part 1: {energized}");
+    energized
+}
+
+fn main() -> anyhow::Result<()> {
+    let p1 = part1::solve(INPUT);
+    assert_eq!(p1, 7608);
+    println!("Part 1: {p1}");
+
+    let grid = INPUT
+        .lines()
+        .map(|line| line.chars().collect_vec())
+        .collect_vec();
+
+    let max = (0..grid.len())
+        .into_iter()
+        .map(|row| ((row, 0), Dir::East))
+        .chain(
+            (0..grid.len())
+                .into_iter()
+                .map(|row| ((row, grid[0].len() - 1), Dir::West)),
+        )
+        .chain(
+            (0..grid[0].len())
+                .into_iter()
+                .map(|col| ((0, col), Dir::South)),
+        )
+        .chain(
+            (0..grid[0].len())
+                .into_iter()
+                .map(|col| ((grid.len() - 1, col), Dir::North)),
+        )
+        .map(|start| count_energized(start, &grid))
+        .max()
+        .unwrap();
+    println!("Part 2: {max}");
 
     Ok(())
+}
+
+mod part1 {
+    use crate::{trace, Co, Dir};
+    use itertools::Itertools;
+    use std::collections::HashSet;
+
+    pub(crate) fn solve(input: &str) -> i64 {
+        let grid = input
+            .lines()
+            .map(|line| line.chars().collect_vec())
+            .collect_vec();
+
+        let mut visited: HashSet<(Co, Dir)> = [].into_iter().collect();
+        trace((0, 0), Dir::East, &grid, &mut visited, 0);
+
+        let energized = visited
+            .into_iter()
+            .map(|(co, _dir)| co)
+            .collect::<HashSet<_>>()
+            .len();
+        energized as i64
+    }
 }
