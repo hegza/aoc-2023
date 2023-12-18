@@ -1,10 +1,9 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use part1::flood_fill;
 use regex::Regex;
-use std::{collections::HashSet, iter};
+use std::collections::HashSet;
 
-use crate::part1::{draw_grid, interpret_part1_input, make_grid};
+use crate::part1::{draw_grid, interpret_part1_input};
 
 const INPUT: &str = include_str!("inputs/day18.txt");
 const TEST_INPUT: &str = include_str!("inputs/day18_test.txt");
@@ -214,16 +213,10 @@ fn part2(input: &str, interpret: Interpret) -> anyhow::Result<i64> {
     let mut interesting_rows = trace.iter().map(|co| co.0).unique().collect_vec();
     interesting_rows.sort();
 
-    for co in &trace {
-        println!("{co:?}");
-    }
-
     //println!("Inter. rows: {interesting_rows:?}");
     let windows = interesting_rows.windows(2);
-    let win_count = windows.clone().count();
     let center_area: usize = windows
-        .enumerate()
-        .map(|(win_num, win)| {
+        .map(|win| {
             let (row0, row1) = (win[0], win[1]);
             let row_count = row1 - row0;
 
@@ -236,38 +229,9 @@ fn part2(input: &str, interpret: Interpret) -> anyhow::Result<i64> {
                 end - start - 1
             });
 
-            fn interfering_hlines<'a>(
-                cols: (usize, usize),
-                line_cols: &'a [(usize, usize)],
-            ) -> impl Iterator<Item = &'a (usize, usize)> {
-                let (start, end) = cols;
-                line_cols.iter().filter(move |&&(ostart, oend)| {
-                    (oend > start && oend < end)
-                        || (ostart > start && ostart < end)
-                        || (oend == end && ostart == start)
-                })
-            }
-
-            fn overlaps_for_interfering_lines(
-                cols: (usize, usize),
-                line_cols: &[&(usize, usize)],
-            ) -> usize {
-                let (s, e) = cols;
-
-                if let Some(ret_cols) = line_cols
-                    .iter()
-                    .find(|&&&(os, oe)| s == os && e == oe)
-                    .and_then(|&line| Some(line.1 - line.0 - 1))
-                {
-                    return ret_cols;
-                };
-
-                line_cols
-                    .iter()
-                    // ???: the error must be here
-                    .find(|&&&(os, oe)| s == oe || e == os || s == os || e == oe)
-                    .and_then(|&line| Some(line.1 - line.0))
-                    .unwrap()
+            fn range_contains(x: usize, min: usize, max: usize) -> bool {
+                assert!(max >= min);
+                x >= min && x <= max
             }
 
             let extras: usize = {
@@ -275,59 +239,28 @@ fn part2(input: &str, interpret: Interpret) -> anyhow::Result<i64> {
                     .iter()
                     .filter_map(|hline| {
                         let hline_row = hline.0 .0;
-                        assert_eq!(hline.1 .0, hline_row);
                         (hline_row == row1).then_some((hline.0 .1, hline.1 .1))
                     })
                     .collect_vec();
-                println!("Hlines at row1 {hline_cols_at_row1:?}");
 
                 let extra_count = fill_ranges.clone().map(|chunk| {
-                    let (start, end) = (chunk[0], chunk[1]);
-                    let chunk_width = end - start - 1;
-                    println!("Chunk_width: {chunk_width}");
-                    println!("Request local hline for cols ({start}, {end})");
-                    let local_hline_cols =
-                        interfering_hlines((start, end), &hline_cols_at_row1).collect_vec();
-                    let overlap = overlaps_for_interfering_lines((start, end), &local_hline_cols);
-                    println!("Overlap here: {overlap}");
-
-                    chunk_width - overlap
+                    (chunk[0] + 1..=chunk[1] - 1)
+                        .filter(|&x| {
+                            hline_cols_at_row1
+                                .iter()
+                                .all(|&(min, max)| !range_contains(x, min, max))
+                        })
+                        .count()
                 });
                 extra_count.sum()
             };
-
-            /*
-                        let hlines_at_row1 = hlines
-                            .iter()
-                            .filter(|hline| {
-                                let hline_row = hline.0 .0;
-                                assert_eq!(hline.1 .0, hline_row);
-                                hline_row == row1
-                            })
-                            .collect_vec();
-                        let matching_hlines = hlines_at_row1.iter().filter(|hline| {
-                            let (start, end) = hline;
-                            let (scol, ecol) = (start.1, end.1);
-                        });
-                        let hline_lens = matching_hlines
-                            .iter()
-                            .map(|hline| len(hline) - 1)
-                            .sum::<usize>();
-                        let extra = counts.clone().sum::<usize>() - hline_lens;
-            */
-
-            println!(
-                "Chunk area: {}x{} + {}",
-                (row_count - 1),
-                counts.clone().sum::<usize>(),
-                extras
-            );
 
             (counts.sum::<usize>() * (row_count - 1) + extras) as usize
 
             // hlines & vlines are counted separately
         })
         .sum();
+
     // Add hlines and vlines separately, without corners
     let line_area: usize = hlines
         .iter()
@@ -339,70 +272,16 @@ fn part2(input: &str, interpret: Interpret) -> anyhow::Result<i64> {
             len - 2
         })
         .sum();
-    // Add corners separately
+
+    // Add corners
     let corner_count = hlines.len() * 2;
 
-    /*
-    let specials: usize = interesting_rows[1..interesting_rows.len() - 1]
-        .iter()
-        .map(|&row| {
-            let mut coll = hcollides(row, &vlines);
-            coll.sort();
-            let fill_ranges = coll.windows(2);
-            let counts = fill_ranges.map(|win| {
-                let (start, end) = (win[0], win[1]);
-                end - start - 1
-            });
-            let count = counts.sum::<usize>();
-
-            let hlines_here = hlines
-                .iter()
-                .filter(|hline| {
-                    let hline_row = hline.0 .0;
-                    assert_eq!(hline.1 .0, hline_row);
-                    hline_row == row
-                })
-                .collect_vec();
-
-            println!("Hlines here: {hlines_here:?}");
-            count
-                - hlines_here
-                    .iter()
-                    .map(|hline| len(hline) - 2)
-                    .sum::<usize>()
-        })
-        .sum();
-    */
-    /*
-    let specials: usize = interesting_rows[1..interesting_rows.len() - 1]
-        .iter()
-        .map(|&row| {
-            let mut coll = hcollides(row, &vlines);
-            coll.sort();
-
-            let mut sum = 0;
-            let mut capture = false;
-            let mut it = coll.windows(2);
-            while let Some(win) = it.next() {
-                let (col0, col1) = (win[0], win[1]);
-
-                if capture {
-                    sum += col1 - col0 - 1;
-                }
-                capture = !capture;
-            }
-            println!("Row: {}, collisions: {coll:?}, sum: {}", row, sum);
-            sum
-        })
-        .sum();
-    */
-
-    println!(
-        "Center area: {}, line area: {}, corner count: {}",
-        center_area, line_area, corner_count
-    );
-
     if VIZ {
+        println!(
+            "Center area: {}, line area: {}, corner count: {}",
+            center_area, line_area, corner_count
+        );
+
         for hline in &hlines {
             println!("{:?}", hline);
         }
@@ -427,10 +306,6 @@ fn part2(input: &str, interpret: Interpret) -> anyhow::Result<i64> {
             grid[co.0][co.1] = true;
         }
 
-        /*
-        let mut grid = make_grid(&trace);
-        flood_fill((1, 1), &mut grid);
-        */
         draw_grid(&grid);
     }
 
@@ -445,8 +320,10 @@ enum Interpret {
 fn main() -> anyhow::Result<()> {
     println!("Checking part1 interpret 1 test input");
     assert_eq!(part1::solve(TEST_INPUT, Interpret::Part1)?, 62);
-    /*println!("Checking part1 interpret 1 main input");
-    assert_eq!(part1::solve(INPUT, Interpret::Part1)?, 42317);*/
+    println!("Checking part1 interpret 1 main input");
+    let p1 = part1::solve(INPUT, Interpret::Part1)?;
+    assert_eq!(p1, 42317);
+    println!("{p1}");
     println!("Checking part2 interpret 1 test input");
     assert_eq!(part2(TEST_INPUT, Interpret::Part1)?, 62);
     println!("Checking part2 interpret 2 test input");
@@ -454,6 +331,7 @@ fn main() -> anyhow::Result<()> {
     println!("Checking part2 interpret 2 main  input");
     let p2 = part2(INPUT, Interpret::Part2)?;
     println!("{p2}");
+    assert_eq!(part2(INPUT, Interpret::Part2)?, 83605563360288);
     Ok(())
 }
 
