@@ -1,211 +1,127 @@
-use itertools::Itertools;
-use std::{collections::*, iter};
+use std::{
+    collections::{BinaryHeap, HashMap},
+    error::Error,
+};
+
+use aochelpers::{parse_number_grid, Coordinate, Direction, ScoredItem};
 
 const INPUT: &str = include_str!("inputs/day17.txt");
-const TEST_INPUT: &str = include_str!("inputs/day17_test.txt");
-const CUSTOM_INPUT: &str = include_str!("inputs/day17_custom.txt");
-
-type Co = (usize, usize);
-
-fn try_add(co: &Co, offset: (isize, isize), rows: usize, cols: usize) -> Option<Co> {
-    let row = co.0.checked_add_signed(offset.0);
-    let col = co.1.checked_add_signed(offset.1);
-    row.zip(col).filter(|&(row, col)| row < rows && col < cols)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct Crucible {
+    facing: Direction,
+    location: Coordinate<i32>,
+    steps_taken: i32,
 }
 
-fn possible_steps(
-    to: Co,
-    path: &[Co],
-    rows: usize,
-    cols: usize,
-) -> impl Iterator<Item = (usize, usize)> + '_ {
-    [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        .into_iter()
-        // Avoid walls
-        .filter_map(move |offset| try_add(&to, offset, rows, cols))
-        // Do not go backwards
-        .filter(|next| {
-            if path.len() <= 1 {
-                true
-            } else {
-                *next != path[path.len() - 2]
-            }
-        })
-        // Do not revisit nodes in a given path (cycling paths are always longer than no cycles)
-        .filter(|next| !path.contains(next))
-        // Avoid going more than 3 times in the same direction (note the 4th element from arriving on a given col or row)
-        .filter(|next| {
-            if path.len() <= 3 {
-                return true;
-            }
-
-            let (rows, cols): (Vec<usize>, Vec<usize>) = path[path.len() - 4..]
-                .iter()
-                .chain(iter::once(next))
-                .map(|&(r, c)| (r, c))
-                .unzip();
-
-            !rows.windows(2).all(|w| w[0] == w[1]) && !cols.windows(2).all(|w| w[0] == w[1])
-        })
-}
-
-const VIZ: bool = true;
-
-fn dfs(co: Co, end: Co, cost: u32, global_min: &mut u32, path: &[Co], grid: &[Vec<u32>], d: usize) {
-    if VIZ {
-        for (y, row) in grid.iter().enumerate() {
-            for (x, c) in row.iter().enumerate() {
-                if co == (y, x) {
-                    print!("*");
-                } else {
-                    print!("{c}");
-                }
-            }
-            println!();
-        }
-    }
-
-    // If this path is costlier than global min, end the path
-    if cost > *global_min {
-        if VIZ {
-            println!("DIED");
-            println!();
-        }
-        return;
-    }
-
-    // If this path is at finish and its still cheaper than global min, record cost and end the path
-    if co == end {
-        *global_min = cost;
-        if VIZ {
-            println!("FINISHED");
-            println!();
-        }
-        return;
-    }
-
-    /*if d >= 10 {
-        if VIZ {
-            println!("MAXED");
-            println!();
-        }
-        return;
-    }*/
-
-    if VIZ {
-        println!();
-    }
-
-    // Find potential next steps
-    let mut potential_next = possible_steps(co, path, grid.len(), grid[0].len()).collect_vec();
-
-    // Optimize order
-    potential_next.sort_by(|a, b| grid[a.0][a.1].cmp(&grid[b.0][b.1]));
-
-    potential_next.into_iter().for_each(|next| {
-        let mut npath = path.to_vec();
-        npath.push(next);
-        let ncost = cost + grid[next.0][next.1];
-        dfs(next, end, ncost, global_min, &npath, grid, d + 1)
-    });
-}
-
-fn init_dfs(start: Co, end: Co, grid: &[Vec<u32>]) -> u32 {
-    let mut min = u32::MAX;
-    dfs(start, end, 0, &mut min, &vec![start], grid, 0);
-    min
-}
-
-#[derive(Clone, Eq, PartialEq)]
-struct State {
-    co: Co,
-    cost: u32,
-    path: Vec<Co>,
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.cost.cmp(&other.cost)
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-fn dijkstra(start: Co, end: Co, grid: &[Vec<u32>]) -> u32 {
-    let mut heap = BinaryHeap::new();
-    heap.push(State {
-        co: start,
-        cost: 0,
-        path: vec![start],
-    });
-
-    let mut global_min = 720;
-    let mut min_map = vec![vec![u32::MAX; grid[0].len()]; grid.len()];
-    let mut longest_path = 0;
-
-    while let Some(State { co, cost, path }) = heap.pop() {
-        if VIZ {
-            if path.len() > longest_path {
-                longest_path = path.len();
-                println!("Path len: {longest_path}");
-            }
-        }
-
-        // Record cheapest for this position
-        if cost < min_map[co.0][co.1] {
-            min_map[co.0][co.1] = cost;
-        }
-        // If this path is costlier than current min to get to this position, end the path
-        else {
-            continue;
-        }
-
-        // If this path is at finish, record cost and end the path
-        if co == end {
-            global_min = cost;
-            if VIZ {
-                println!(
-                    "Found new min: {}, remaining paths to analyze: {}",
-                    global_min,
-                    heap.len()
-                );
-            }
-            continue;
-        }
-
-        // Record next potential steps
-        for state in possible_steps(co, &path, grid.len(), grid[0].len()).map(|next| {
-            let mut npath = path.to_vec();
-            npath.push(next);
-            let ncost = cost + grid[next.0][next.1];
-            State {
-                co: next,
-                cost: ncost,
-                path: npath,
-            }
-        }) {
-            heap.push(state);
-        }
-    }
-
-    global_min - grid[start.0][start.1]
-}
-
-fn main() -> anyhow::Result<()> {
-    let lines = INPUT.lines();
-
-    let grid = lines
-        .into_iter()
-        .map(|line| line.chars().map(|c| c.to_digit(10).unwrap()).collect_vec())
-        .collect_vec();
-
-    let min = dijkstra((0, 0), (grid.len() - 1, grid[0].len() - 1), &grid) as i64;
-
-    println!("{min}");
+fn main() -> Result<(), Box<dyn Error>> {
+    let grid: HashMap<Coordinate<i32>, i32> = parse_number_grid(INPUT);
+    println!("{}", part1(&grid, 0, 3));
+    println!("{}", part1(&grid, 4, 10));
 
     Ok(())
+}
+
+fn part1(grid: &HashMap<Coordinate<i32>, i32>, min_move: i32, max_move: i32) -> i32 {
+    let mut repeated_states = HashMap::new();
+    let mut unconsidered = BinaryHeap::new();
+
+    let goal = Coordinate {
+        x: grid.keys().map(|c| c.x).max().unwrap(),
+        y: grid.keys().map(|c| c.y).max().unwrap(),
+    };
+
+    unconsidered.push(ScoredItem {
+        cost: 0,
+        item: Crucible {
+            facing: Direction::East,
+            location: Coordinate { x: 0, y: 0 },
+            steps_taken: 0,
+        },
+    });
+    unconsidered.push(ScoredItem {
+        cost: 0,
+        item: Crucible {
+            facing: Direction::South,
+            location: Coordinate { x: 0, y: 0 },
+            steps_taken: 0,
+        },
+    });
+
+    while let Some(current_square) = unconsidered.pop() {
+        let best_for_square = repeated_states
+            .get(&current_square.item)
+            .unwrap_or(&i32::MAX);
+        if *best_for_square <= current_square.cost {
+            continue;
+        }
+        repeated_states.insert(current_square.item, current_square.cost);
+        if current_square.item.location == goal && current_square.item.steps_taken >= min_move {
+            return current_square.cost;
+        } else if current_square.item.location == goal {
+            continue;
+        }
+        if current_square.item.steps_taken + 1 < max_move {
+            let next_square = current_square
+                .item
+                .location
+                .neighbour(current_square.item.facing);
+            if grid.contains_key(&next_square) {
+                unconsidered.push(ScoredItem {
+                    cost: current_square.cost + grid.get(&next_square).unwrap(),
+                    item: Crucible {
+                        facing: current_square.item.facing,
+                        location: next_square,
+                        steps_taken: current_square.item.steps_taken + 1,
+                    },
+                });
+            }
+        }
+        let forks = match current_square.item.facing {
+            Direction::North | Direction::South => [Direction::East, Direction::West],
+            Direction::East | Direction::West => [Direction::North, Direction::South],
+            _ => unimplemented!(),
+        };
+        if current_square.item.steps_taken + 1 >= min_move {
+            for next_direction in forks {
+                let next_square = current_square.item.location.neighbour(next_direction);
+                if grid.contains_key(&next_square) {
+                    unconsidered.push(ScoredItem {
+                        cost: current_square.cost + grid.get(&next_square).unwrap(),
+                        item: Crucible {
+                            facing: next_direction,
+                            location: next_square,
+                            steps_taken: 0,
+                        },
+                    });
+                }
+            }
+        }
+    }
+    0
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    const DATA: &str = "2413432311323
+3215453535623
+3255245654254
+3446585845452
+4546657867536
+1438598798454
+4457876987766
+3637877979653
+4654967986887
+4564679986453
+1224686865563
+2546548887735
+4322674655533";
+
+    #[test]
+    fn test_checksum() {
+        let grid: HashMap<Coordinate<i32>, i32> = parse_number_grid(DATA);
+        assert_eq!(part1(&grid, 0, 3), 102);
+        assert_eq!(part1(&grid, 4, 10), 94);
+    }
 }

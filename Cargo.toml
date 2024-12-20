@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
+aochelpers = "0.6.1"
 array_tool = "1.0.3"
 fs-err = "2.9.0"
 itertools = "0.12.0"
